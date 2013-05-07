@@ -17,7 +17,7 @@
                BlueprintIdentifier = "1D6058900D05DD3D006BFB54"
                BuildableName = "FishEyes.app"
                BlueprintName = "FishEyes"
-               ReferencedContainer = "container:FishEyes.xcodeproj">
+               ReferencedContainer = "container:CrazyEyes.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -35,7 +35,7 @@
             BlueprintIdentifier = "1D6058900D05DD3D006BFB54"
             BuildableName = "FishEyes.app"
             BlueprintName = "FishEyes"
-            ReferencedContainer = "container:FishEyes.xcodeproj">
+            ReferencedContainer = "container:CrazyEyes.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </TestAction>
@@ -54,7 +54,7 @@
             BlueprintIdentifier = "1D6058900D05DD3D006BFB54"
             BuildableName = "FishEyes.app"
             BlueprintName = "FishEyes"
-            ReferencedContainer = "container:FishEyes.xcodeproj">
+            ReferencedContainer = "container:CrazyEyes.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -72,7 +72,7 @@
             BlueprintIdentifier = "1D6058900D05DD3D006BFB54"
             BuildableName = "FishEyes.app"
             BlueprintName = "FishEyes"
-            ReferencedContainer = "container:FishEyes.xcodeproj">
+            ReferencedContainer = "container:CrazyEyes.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
