@@ -6,6 +6,8 @@
 #include "ofxBox2d.h"
 #include "SettingsUIView.h"
 
+#define FPS 30
+
 
 class SoundData
 {
@@ -140,14 +142,12 @@ public:
     ofSoundPlayer soundContact;
     
     bool bSoundEnabled = true;
-    
-    ofColor backgroundColor;
-    
+        
     ofxBox2d world;
-    ofFbo fbo;
     
     vector <FishParticle *> eyeCircles;
 	vector <FishRectParticle *> eyeRects;
+    vector <ofxBox2dJoint *> joints;
     
     bool bAddEyeCircles = true;
     bool bDrawWhileDragging = false;

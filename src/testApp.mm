@@ -1,42 +1,38 @@
 #include "testApp.h"
 
 //--------------------------------------------------------------
-void testApp::setup()
-{
-	// initialize the accelerometer
-	ofxAccelerometer.setup();
+void testApp::setup(){
+    // initialize the accelerometer
+    ofxAccelerometer.setup();
     
     //iPhoneAlerts will be sent to this.
-	ofxiPhoneAlerts.addListener(this);
+    ofxiPhoneAlerts.addListener(this);
     
     // register touch events
-	ofRegisterTouchEvents(this);
-	
-	//If you want a landscape oreintation
-	//iPhoneSetOrientation(OFXIPHONE_ORIENTATION_LANDSCAPE_RIGHT);
-	
-    backgroundColor = ofColor(0);
-	ofBackground(backgroundColor);
-    ofEnableAlphaBlending();
+    ofRegisterTouchEvents(this);
     
-    int fps = 30;
+    //If you want a landscape oreintation
+    //iPhoneSetOrientation(OFXIPHONE_ORIENTATION_LANDSCAPE_RIGHT);
+    
+    ofSetBackgroundAuto(true);
+    ofBackgroundGradient(ofColor(0), ofColor(0x490704));
+    
+    ofEnableAlphaBlending();
+    ofSetFrameRate(FPS);
+    ofEnableSmoothing();
+    ofSetVerticalSync(true);
+    ofSetCircleResolution(40);
+    
     
     initialMass = 0.4f;
-	
-	ofBackground(0);
-	ofSetBackgroundAuto(false);
-	ofSetFrameRate(fps);
-	ofEnableSmoothing();
-	ofSetVerticalSync(true);
-	ofSetCircleResolution(50);
-	
-	world.init();
-    world.doSleep = false;
-	world.checkBounds(true);
-	world.createBounds(0, 0, ofGetWidth(), ofGetHeight());
-	world.setFPS(fps);
     
-    bDrawWhileDragging = true;
+    world.init();
+    world.doSleep = false;
+    world.checkBounds(true);
+    world.createBounds(0, 0, ofGetWidth(), ofGetHeight());
+    world.registerGrabbing();
+    world.setFPS(FPS);
+    
     startLocation.set(0, 0);
     endLocation.set(0, 0);
     
@@ -44,8 +40,8 @@ void testApp::setup()
     endLocation.set(ofGetWidth()/2, ofGetHeight()/2);
     
     // register the listener so that we get the events
-	ofAddListener(world.contactStartEvents, this, &testApp::contactStart);
-	ofAddListener(world.contactEndEvents, this, &testApp::contactEnd);
+    ofAddListener(world.contactStartEvents, this, &testApp::contactStart);
+    ofAddListener(world.contactEndEvents, this, &testApp::contactEnd);
     
     // load the sfx soundfiles
     soundPop.loadSound("sfx/BubblePo-Benjamin-8920_hifi.wav");
@@ -60,20 +56,10 @@ void testApp::setup()
     settingsView = [[SettingsUIView alloc] initWithNibName:@"SettingsUIView" bundle:nil];
     [ofxiPhoneGetGLView() addSubview:settingsView.view];
     settingsView.view.hidden = YES;
-    
-    ofFbo::Settings settings;
-	settings.width = ofGetWidth() * 4;
-	settings.height = ofGetHeight() * 4;
-	settings.internalformat = GL_RGBA;
-	settings.numSamples = 0;
-	settings.useDepth = true;
-	settings.useStencil = true;
-	fbo.allocate(settings);
 }
 
 //--------------------------------------------------------------
-void testApp::update()
-{
+void testApp::update(){
     ofSoundUpdate();
     
     float accx = ofxAccelerometer.getForce().x;
@@ -86,91 +72,85 @@ void testApp::update()
     float fy = accy * -gravity;
     
     world.setGravity(fx, fy);
-    
-    fbo.begin();
+}
+
+//--------------------------------------------------------------
+void testApp::draw() {
+    ofSetColor(255);
     ofPushStyle();
-    ofClear(backgroundColor);
-    for (int i=0; i<eyeCircles.size(); i++)
-	{
-		eyeCircles[i]->draw();
-	}
-    for (int i=0; i<eyeRects.size(); i++)
-	{
-		eyeRects[i]->draw();
-	}
- 	
+    ofClear(0);
+    ofBackgroundGradient(ofColor(0), ofColor(0x490704), OF_GRADIENT_LINEAR);
+    for (int i=0; i<eyeCircles.size(); i++) {
+        eyeCircles[i]->draw();
+    }
+    for (int i=0; i<eyeRects.size(); i++) {
+        eyeRects[i]->draw();
+    }
+    
     if (bDrawRadiusCircle) {
         ofSetHexColor(0xff0000);
         float radius = startLocation.distance(endLocation) / 2;
         ofCircle(startLocation, radius);
     }
     ofPopStyle();
-    fbo.end();
+    ofSetColor(255, 0, 0);
+    // for(int i=0; i<joints.size(); i++)      joints[i]->draw();
 }
 
 //--------------------------------------------------------------
-void testApp::draw()
-{
-    fbo.draw(0, 0, ofGetWidth() * 4, ofGetHeight() * 4);
-}
-
-//--------------------------------------------------------------
-void testApp::contactStart(ofxBox2dContactArgs &e)
-{
-	if (e.a != NULL && e.b != NULL)
+void testApp::contactStart(ofxBox2dContactArgs &e){
+    if (e.a != NULL && e.b != NULL)
     {
-		// if we collide with the ground we do not
-		// want to play a sound. this is how you do that
-		if(e.a->GetType() == b2Shape::e_circle && e.b->GetType() == b2Shape::e_circle)
+        // if we collide with the ground we do not
+        // want to play a sound. this is how you do that
+        if(e.a->GetType() == b2Shape::e_circle && e.b->GetType() == b2Shape::e_circle)
         {
-		    SoundData * aData = (SoundData*)e.a->GetBody()->GetUserData();
+            SoundData * aData = (SoundData*)e.a->GetBody()->GetUserData();
             SoundData * bData = (SoundData*)e.b->GetBody()->GetUserData();
             
             if(aData)
             {
                 aData->bHit = true;
-//                soundContact.play();
+                // soundContact.play();
                 // sound[aData->soundID].play();
             }
             
             if(bData)
             {
                 bData->bHit = true;
-//                soundContact.play();
+                // soundContact.play();
                 // sound[bData->soundID].play();
             }
-		}
-	}
+        }
+    }
 }
 
 //--------------------------------------------------------------
 void testApp::contactEnd(ofxBox2dContactArgs &e) {
-	if (e.a != NULL && e.b != NULL)
+    if (e.a != NULL && e.b != NULL)
     {
-		SoundData * aData = (SoundData*)e.a->GetBody()->GetUserData();
-		SoundData * bData = (SoundData*)e.b->GetBody()->GetUserData();
-		
-		if(aData)
+        SoundData * aData = (SoundData*)e.a->GetBody()->GetUserData();
+        SoundData * bData = (SoundData*)e.b->GetBody()->GetUserData();
+        
+        if(aData)
         {
-			aData->bHit = false;
-		}
-		
-		if(bData)
+            aData->bHit = false;
+        }
+        
+        if(bData)
         {
-			bData->bHit = false;
-		}
-	}
+            bData->bHit = false;
+        }
+    }
 }
 
 //--------------------------------------------------------------
-void testApp::exit()
-{
+void testApp::exit(){
     clearEyes();
 }
 
 //--------------------------------------------------------------
-void testApp::touchDown(ofTouchEventArgs & touch)
-{
+void testApp::touchDown(ofTouchEventArgs & touch){
     if (!bDrawWhileDragging)
     {
         bDrawRadiusCircle = true;
@@ -180,52 +160,50 @@ void testApp::touchDown(ofTouchEventArgs & touch)
 }
 
 //--------------------------------------------------------------
-void testApp::touchMoved(ofTouchEventArgs & touch)
-{
+void testApp::touchMoved(ofTouchEventArgs & touch){
     endLocation.set(touch.x, touch.y);
     
     if (bDrawWhileDragging)
     {
-        if (bAddEyeCircles)
-        {
-            float radius = ofRandom(sizeMin, sizeMax);
-            addCircleEye(endLocation, radius);
-        }
-        else
-        {
-            float width = ofRandom(sizeMin, sizeMax);
-            float height = ofRandom(sizeMin, sizeMax);
-            addRectEye(endLocation, width, height);
-        }
+        float size = ofRandom(sizeMin, sizeMax);
+        if (bAddEyeCircles)     addCircleEye(endLocation, size);
+        else                    addRectEye(endLocation, size, size);
     }
 }
 
 //--------------------------------------------------------------
-void testApp::touchUp(ofTouchEventArgs & touch)
-{
+void testApp::touchUp(ofTouchEventArgs & touch){
     if (!bDrawWhileDragging)
     {
         bDrawRadiusCircle = false;
         
-        if (bAddEyeCircles)
+        float size = startLocation.distance(endLocation) / 2;
+        
+        if (size > 4 && size < ofGetWidth())
         {
-            float radius = startLocation.distance(endLocation) / 2;
-            if (radius > 4)
-                addCircleEye(startLocation, radius);
+            if (bAddEyeCircles)     addCircleEye(startLocation, size);
+            else                    addRectEye(startLocation, size, size);
         }
-        else
-        {
-            float width = startLocation.distance(endLocation) / 2;
-            float height = startLocation.distance(endLocation) / 2;
-            if (width > 4 && height > 4)
-                addRectEye(startLocation, width, height);
+        
+        // get this circle and the prev circle
+        if (eyeCircles.size() % 2 == 0 && eyeCircles.size() >= 2) {
+            int a = (int)eyeCircles.size()-2;
+            int b = (int)eyeCircles.size()-1;
+            
+            // now connect the new circle with a joint
+            ofxBox2dJoint *joint = new ofxBox2dJoint;
+            joint->setup(world.getWorld(), eyeCircles[a]->body, eyeCircles[b]->body);
+            float length = eyeCircles[a]->getRadius()/2 + eyeCircles[b]->getRadius()/2 + 20;
+            joint->setLength(length);
+            joint->setFrequency(1.0);
+            joint->setDamping(0.2);
+            joints.push_back(joint);
         }
     }
 }
 
 //--------------------------------------------------------------
-void testApp::addCircleEye(ofVec2f position, float radius)
-{
+void testApp::addCircleEye(ofVec2f position, float radius){
     FishParticle *p = new FishParticle();
     
     p->setPhysics(radius * radius * initialMass, bounciness, friction);
@@ -235,7 +213,7 @@ void testApp::addCircleEye(ofVec2f position, float radius)
     p->setData(new SoundData());
     SoundData * sd = (SoundData*)p->getData();
     sd->soundID = 0;
-    sd->bHit	= false;
+    sd->bHit    = false;
     
     eyeCircles.push_back(p);
     
@@ -243,8 +221,7 @@ void testApp::addCircleEye(ofVec2f position, float radius)
 }
 
 //--------------------------------------------------------------
-void testApp::addRectEye(ofVec2f position, float width, float height)
-{
+void testApp::addRectEye(ofVec2f position, float width, float height){
     FishRectParticle *p = new FishRectParticle();
     float area = width * height;
     p->setPhysics(area * initialMass, bounciness, friction);
@@ -254,7 +231,7 @@ void testApp::addRectEye(ofVec2f position, float width, float height)
     p->setData(new SoundData());
     SoundData * sd = (SoundData*)p->getData();
     sd->soundID = 1;
-    sd->bHit	= false;
+    sd->bHit    = false;
     
     eyeRects.push_back(p);
     
@@ -262,28 +239,19 @@ void testApp::addRectEye(ofVec2f position, float width, float height)
 }
 
 //--------------------------------------------------------------
-void testApp::clearEyes()
-{
-    int sum (0);
-    
-    for(int i=0; i<eyeCircles.size(); i++)    eyeCircles[i]->destroy();
+void testApp::clearEyes(){
+    for(int i=0; i<eyeCircles.size(); i++)  eyeCircles[i]->destroy();
     for(int i=0; i<eyeRects.size(); i++)    eyeRects[i]->destroy();
     
-    while (!eyeCircles.empty())
-    {
-        sum += (int)eyeCircles.back();
-        eyeCircles.pop_back();
-    }
-    while (!eyeRects.empty())
-    {
-        sum += (int)eyeRects.back();
-        eyeRects.pop_back();
-    }
+    eyeCircles.clear();
+    eyeRects.clear();
+    
+    // for(int i=0; i<joints.size(); i++)      joints[i]->destroy();
+    joints.clear();
 }
 
 //--------------------------------------------------------------
-void testApp::touchDoubleTap(ofTouchEventArgs & touch)
-{
+void testApp::touchDoubleTap(ofTouchEventArgs & touch){
     settingsView.view.hidden = NO;
 }
 
@@ -294,24 +262,22 @@ void testApp::touchCancelled(ofTouchEventArgs & touch){
 
 //--------------------------------------------------------------
 void testApp::lostFocus(){
-
+    
 }
 
 //--------------------------------------------------------------
 void testApp::gotFocus(){
-
+    
 }
 
 //--------------------------------------------------------------
-void testApp::gotMemoryWarning()
-{
+void testApp::gotMemoryWarning(){
     // Empty eyes on low memory
     clearEyes();
 }
 
 //--------------------------------------------------------------
-void testApp::deviceOrientationChanged(int newOrientation)
-{
+void testApp::deviceOrientationChanged(int newOrientation){
     
 }
 

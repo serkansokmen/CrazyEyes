@@ -7,7 +7,7 @@ int main()
 	
 	// iOSWindow->enableDepthBuffer();
 	// iOSWindow->enableAntiAliasing(2);
-	// iOSWindow->enableRetina();
+	iOSWindow->enableRetina();
     
     ofSetupOpenGL(iOSWindow, 1024, 768, OF_FULLSCREEN);
     
